@@ -188,6 +188,7 @@ export interface Database {
           project_id: string;
           qtpp_id: string | null;
           attribute: string;
+          target: string | null;
           importance: string;
           reason: string | null;
           evidence_id: string | null;
@@ -210,6 +211,7 @@ export interface Database {
           cqa_id: string | null;
           material: string;
           attribute: string;
+          target: string | null;
           impact_description: string | null;
           evidence_id: string | null;
           ai_suggested: boolean;
@@ -231,7 +233,8 @@ export interface Database {
           project_id: string;
           process_step: string;
           parameter: string;
-          note: string;
+          target: string | null;
+          note: string | null;
           created_by: string | null;
           created_at: string;
         };

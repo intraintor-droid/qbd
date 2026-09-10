@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { Trash2 } from "lucide-react";
 
 interface RiskRow {
   id: string;
@@ -32,6 +33,7 @@ export function RiskAssessmentTab({ projectId }: { projectId: string }) {
   const [rationale, setRationale] = useState("");
   const [studyRequired, setStudyRequired] = useState("");
   const [saving, setSaving] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   async function load() {
     const { data } = await supabase
@@ -69,6 +71,12 @@ export function RiskAssessmentTab({ projectId }: { projectId: string }) {
     load();
   }
 
+  async function handleDelete(id: string) {
+    await supabase.from("risk_assessments").delete().eq("id", id);
+    setConfirmDeleteId(null);
+    load();
+  }
+
   return (
     <div className="space-y-6">
       <div className="border border-line bg-surface rounded-md p-4 space-y-3">
@@ -103,7 +111,7 @@ export function RiskAssessmentTab({ projectId }: { projectId: string }) {
         <p className="text-sm text-ink/50">Belum ada penilaian risiko.</p>
       ) : (
         <table className="data-table w-full">
-          <thead><tr><th>Risk Factor</th><th>S</th><th>O</th><th>D</th><th>RPN</th><th>Level</th><th>Study Required</th></tr></thead>
+          <thead><tr><th>Risk Factor</th><th>S</th><th>O</th><th>D</th><th>RPN</th><th>Level</th><th>Study Required</th><th className="w-16"></th></tr></thead>
           <tbody>
             {rows.map((r) => (
               <tr key={r.id}>
@@ -114,6 +122,18 @@ export function RiskAssessmentTab({ projectId }: { projectId: string }) {
                 <td className="text-center font-mono">{r.rpn}</td>
                 <td><span className={`badge-risk-${r.risk_level} text-[11px] px-2 py-0.5 rounded-sm capitalize`}>{r.risk_level}</span></td>
                 <td className="text-ink/60">{r.study_required ?? "—"}</td>
+                <td>
+                  {confirmDeleteId === r.id ? (
+                    <div className="flex gap-1.5 items-center whitespace-nowrap">
+                      <button onClick={() => handleDelete(r.id)} className="text-[11px] bg-risk-critical text-white px-1.5 py-0.5 rounded">Ya</button>
+                      <button onClick={() => setConfirmDeleteId(null)} className="text-[11px] text-ink/50">Batal</button>
+                    </div>
+                  ) : (
+                    <button onClick={() => setConfirmDeleteId(r.id)} className="text-ink/40 hover:text-risk-critical">
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
