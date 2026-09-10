@@ -15,14 +15,14 @@ const config: Config = {
         ink: "#241220",
         line: "#F1D9E6",
         primary: {
-          DEFAULT: "#D6246F",
-          foreground: "#FFF7FA",
-          soft: "#FCE4EF",
-          dark: "#A81856"
+          DEFAULT: "var(--color-primary, #D6246F)",
+          foreground: "var(--color-primary-foreground, #FFF7FA)",
+          soft: "var(--color-primary-soft, #FCE4EF)",
+          dark: "var(--color-primary-dark, #A81856)"
         },
         accent: {
-          DEFAULT: "#FF6FA5",
-          soft: "#FFE2EE"
+          DEFAULT: "var(--color-accent, #FF6FA5)",
+          soft: "var(--color-accent-soft, #FFE2EE)"
         },
         risk: {
           low: "#2F7D52",

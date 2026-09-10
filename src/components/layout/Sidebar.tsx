@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  LayoutDashboard, FolderKanban, MessagesSquare, FileBarChart, Settings
+  LayoutDashboard, FolderKanban, MessagesSquare, FileBarChart, Settings, ShieldCheck
 } from "lucide-react";
+import { useAppSettings } from "@/lib/settings/AppSettingsContext";
+import type { UserRole } from "@/types/database";
 
 // Modul QbD (API Profile, QTPP, CQA, CMA, CPP, Literature, Risk Assessment,
 // Excipient Compatibility, Preformulation, References) hidup sebagai tab di
@@ -18,17 +20,22 @@ const NAV = [
   { href: "/settings", label: "Settings", icon: Settings }
 ];
 
-export function Sidebar() {
+export function Sidebar({ role }: { role?: UserRole }) {
   const pathname = usePathname();
+  const settings = useAppSettings();
+
+  const nav = role === "super_admin"
+    ? [...NAV, { href: "/admin", label: "Admin", icon: ShieldCheck }]
+    : NAV;
 
   return (
     <aside className="w-64 shrink-0 border-r border-line bg-surface h-screen sticky top-0 flex flex-col">
       <div className="px-5 py-5 border-b border-line">
-        <p className="font-mono text-[11px] tracking-wide text-primary">QbD Workspace</p>
-        <p className="font-display text-lg leading-tight mt-0.5">Preformulation<br />Research Assistant</p>
+        <p className="font-mono text-[11px] tracking-wide text-primary">{settings.app_name}</p>
+        <p className="font-display text-lg leading-tight mt-0.5">{settings.tagline}</p>
       </div>
       <nav className="flex-1 overflow-y-auto py-3">
-        {NAV.map(({ href, label, icon: Icon }) => {
+        {nav.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname?.startsWith(href + "/");
           return (
             <Link

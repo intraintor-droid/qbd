@@ -1,4 +1,10 @@
+"use client";
+
+import { useAppSettings } from "@/lib/settings/AppSettingsContext";
+
 export function AuthBrandPanel() {
+  const settings = useAppSettings();
+
   return (
     <div className="brand-panel relative hidden lg:flex lg:w-[42%] flex-col justify-between p-12 text-white overflow-hidden">
       <svg
@@ -32,18 +38,16 @@ export function AuthBrandPanel() {
       </svg>
 
       <div className="relative">
-        <p className="font-mono text-xs tracking-wide text-white/70">QbD Preformulation</p>
-        <p className="font-display text-2xl mt-1 leading-tight">Research<br />Assistant</p>
+        <p className="font-mono text-xs tracking-wide text-white/70">{settings.app_name}</p>
+        <p className="font-display text-2xl mt-1 leading-tight">{settings.tagline}</p>
       </div>
 
       <div className="relative space-y-4 max-w-sm">
         <p className="font-display text-3xl leading-snug">
-          Dari struktur molekul hingga risk assessment, dalam satu alur kerja.
+          {settings.hero_headline}
         </p>
         <p className="text-sm text-white/75 leading-relaxed">
-          Susun profil fisikokimia, telusuri literatur lintas sumber, dan bangun
-          QTPP–CQA–CMA yang tertelusuri ke bukti ilmiahnya — sebelum Anda masuk ke
-          tahap formulasi.
+          {settings.hero_body}
         </p>
       </div>
     </div>

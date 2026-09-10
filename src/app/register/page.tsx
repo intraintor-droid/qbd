@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { AuthBrandPanel } from "@/components/auth/AuthBrandPanel";
+import { PasswordInput } from "@/components/auth/PasswordInput";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -71,15 +72,7 @@ export default function RegisterPage() {
             </div>
             <div>
               <label className="block text-sm mb-1.5 text-ink/80" htmlFor="password">Kata sandi</label>
-              <input
-                id="password"
-                type="password"
-                required
-                minLength={8}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
-              />
+              <PasswordInput id="password" value={password} onChange={setPassword} required minLength={8} />
             </div>
             {error && (
               <p className="text-sm text-risk-critical bg-risk-critical/5 border border-risk-critical/20 rounded-lg px-3 py-2">

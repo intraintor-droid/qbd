@@ -363,6 +363,24 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["search_history"]["Row"]>;
         Relationships: never[];
       };
+      app_settings: {
+        Row: {
+          id: boolean;
+          app_name: string;
+          tagline: string;
+          hero_headline: string;
+          hero_body: string;
+          color_primary: string;
+          color_primary_dark: string;
+          color_primary_soft: string;
+          color_accent: string;
+          updated_by: string | null;
+          updated_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["app_settings"]["Row"]>;
+        Update: Partial<Database["public"]["Tables"]["app_settings"]["Row"]>;
+        Relationships: never[];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
