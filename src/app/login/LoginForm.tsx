@@ -6,6 +6,13 @@ import { createClient } from "@/lib/supabase/client";
 import { AuthBrandPanel } from "@/components/auth/AuthBrandPanel";
 import { PasswordInput } from "@/components/auth/PasswordInput";
 
+function getSafeRedirect(value: string | null): string {
+  if (!value || !value.startsWith("/") || value.startsWith("//") || value.includes("\\")) {
+    return "/dashboard";
+  }
+  return value;
+}
+
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -25,7 +32,7 @@ export function LoginForm() {
       setError(error.message);
       return;
     }
-    router.push(searchParams.get("redirectTo") ?? "/dashboard");
+    router.push(getSafeRedirect(searchParams.get("redirectTo")));
     router.refresh();
   }
 
