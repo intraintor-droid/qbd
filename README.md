@@ -18,6 +18,11 @@ diimplementasikan.
    - `supabase/migrations_002_app_settings.sql`
    - `supabase/migrations_003_element_target_justifikasi.sql`
    - `supabase/migrations_004_importance_pct_and_doe.sql`
+   - `supabase/migrations_005_integrity.sql`
+
+   Migration 005 menambahkan validasi hubungan antar-entitas agar record yang terhubung
+   tidak dapat berasal dari project berbeda, serta memperketat RLS untuk tabel global dan
+   search history.
 
    Urutan ini penting karena file TypeScript aplikasi sudah mengikuti skema hasil migration,
    termasuk `app_settings`, `doe_designs`, kolom `target`, dan `cqa.importance` berbentuk
@@ -68,6 +73,7 @@ supabase/rls.sql          -> Row Level Security per role (researcher/reviewer/su
 supabase/migrations_002*  -> app_settings / branding admin
 supabase/migrations_003*  -> target + justifikasi pada CQA/CMA/CPP
 supabase/migrations_004*  -> CQA importance 0–100 + DOE
+supabase/migrations_005*  -> integritas relasi antar-project + RLS hardening
 src/lib/supabase/         -> Client & server Supabase clients
 src/lib/ai/provider.ts    -> AIProvider abstraction (Anthropic/OpenAI/Gemini) + anti-hallucination prompt
 src/lib/pubchem/          -> Integrasi PubChem PUG REST (data asli, tidak pernah mengarang)
@@ -85,6 +91,21 @@ src/components/workspace/ -> Tab-tab workspace: API Profile, Literature, QTPP, C
 - Jika context tidak cukup, AI wajib menjawab `"Insufficient evidence found."`
 - Data PubChem yang tidak tersedia ditandai `"TIDAK DITEMUKAN"`, bukan diestimasi diam-diam.
 - Referensi tanpa DOI ditandai `"DOI not available"`, tidak pernah dibuat-buat.
+
+## Keamanan database
+
+- Researcher hanya dapat membaca/menulis project miliknya sendiri.
+- Reviewer dapat membaca project yang tersedia untuk review, tetapi bukan mengubah data project.
+- Super admin memiliki akses administratif.
+- Soft-deleted project disembunyikan dari listing normal.
+- Foreign-key biasa saja belum cukup untuk menjamin dua record berada dalam project yang sama.
+  Migration `005` menambahkan trigger database untuk menolak relasi lintas-project pada QTPP,
+  CQA, CMA, CPP, risk assessment, literature, evidence, compatibility, study plan, notes,
+  references, dan relasi API terkait.
+- `search_history` tidak boleh menunjuk ke project yang tidak dapat diakses oleh user yang
+  membuat entry.
+- `literature_sources` dan `excipients` adalah katalog global: authenticated user dapat membaca,
+  sedangkan perubahan katalog dibatasi untuk `super_admin`.
 
 ## Roadmap — belum diimplementasikan di iterasi ini
 
