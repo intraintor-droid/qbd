@@ -29,29 +29,53 @@ export async function POST(req: NextRequest) {
 
   const { question, projectId } = parsed.data;
 
-  const [{ data: project, error: projectError }, { data: literature, error: literatureError }, { data: evidence, error: evidenceError }] =
-    await Promise.all([
-      supabase.from("projects").select("*").eq("id", projectId).is("deleted_at", null).single(),
-      supabase
-        .from("literature")
-        .select("title, authors, publication_year, journal, doi, abstract")
-        .eq("project_id", projectId)
-        .eq("is_saved", true)
-        .is("deleted_at", null)
-        .limit(25),
-      supabase
-        .from("literature_evidence")
-        .select("parameter, value, confidence, claim, literature_id, literature(title, doi)")
-        .limit(50)
-    ]);
+  const { data: project, error: projectError } = await supabase
+    .from("projects")
+    .select("*")
+    .eq("id", projectId)
+    .is("deleted_at", null)
+    .single();
 
-  // RLS normally hides projects the user cannot access. Still fail closed if
-  // the project lookup fails, so an inaccessible project is never sent to AI.
+  // Fail closed. RLS determines whether the authenticated user can see this project.
   if (projectError || !project) {
     return NextResponse.json({ error: "Project tidak ditemukan atau tidak dapat diakses." }, { status: 404 });
   }
-  if (literatureError || evidenceError) {
-    return NextResponse.json({ error: "Gagal mengambil evidence proyek." }, { status: 500 });
+
+  const { data: literature, error: literatureError } = await supabase
+    .from("literature")
+    .select("id, title, authors, publication_year, journal, doi, abstract")
+    .eq("project_id", projectId)
+    .eq("is_saved", true)
+    .is("deleted_at", null)
+    .limit(25);
+
+  if (literatureError) {
+    return NextResponse.json({ error: "Gagal mengambil literatur proyek." }, { status: 500 });
+  }
+
+  // IMPORTANT: evidence is scoped through the literature IDs belonging to this
+  // project. A plain literature_evidence query would let a reviewer-accessible
+  // account mix evidence from unrelated projects into the AI context.
+  const literatureIds = (literature ?? []).map((l) => l.id);
+  let evidence: Array<{
+    parameter: string;
+    value: string | null;
+    confidence: "high" | "medium" | "low";
+    literature_id: string;
+    literature: { title: string; doi: string | null } | null;
+  }> = [];
+
+  if (literatureIds.length > 0) {
+    const { data, error: evidenceError } = await supabase
+      .from("literature_evidence")
+      .select("parameter, value, confidence, literature_id, literature(title, doi)")
+      .in("literature_id", literatureIds)
+      .limit(50);
+
+    if (evidenceError) {
+      return NextResponse.json({ error: "Gagal mengambil evidence proyek." }, { status: 500 });
+    }
+    evidence = (data ?? []) as typeof evidence;
   }
 
   const retrievedLiterature: RAGRequest["retrievedLiterature"] = (literature ?? []).map((l) => ({
@@ -63,8 +87,8 @@ export async function POST(req: NextRequest) {
     abstract: l.abstract ?? undefined
   }));
 
-  const extractedEvidence: NonNullable<RAGRequest["extractedEvidence"]> = (evidence ?? [])
-    .filter((e) => e.literature?.title)
+  const extractedEvidence: NonNullable<RAGRequest["extractedEvidence"]> = evidence
+    .filter((e) => Boolean(e.literature?.title))
     .map((e) => ({
       parameter: e.parameter,
       value: e.value ?? undefined,
