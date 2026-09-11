@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Trash2 } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, CartesianGrid } from "recharts";
 
 interface RiskRow {
   id: string;
@@ -22,6 +23,14 @@ function levelFromRpn(rpn: number): "critical" | "high" | "medium" | "low" {
   if (rpn >= 40) return "medium";
   return "low";
 }
+
+const RISK_COLOR: Record<string, string> = {
+  critical: "#B3123A",
+  high: "#D9622B",
+  medium: "#C08B2E",
+  low: "#2F7D52",
+  unknown: "#9CA3AF"
+};
 
 export function RiskAssessmentTab({ projectId }: { projectId: string }) {
   const supabase = createClient();
@@ -110,7 +119,42 @@ export function RiskAssessmentTab({ projectId }: { projectId: string }) {
       {rows.length === 0 ? (
         <p className="text-sm text-ink/50">Belum ada penilaian risiko.</p>
       ) : (
-        <table className="data-table w-full">
+        <>
+          <div className="border border-line bg-surface rounded-md p-4">
+            <p className="text-sm font-medium mb-3">Peta Prioritas Risiko (RPN)</p>
+            <ResponsiveContainer width="100%" height={Math.max(120, rows.length * 38)}>
+              <BarChart
+                data={[...rows].sort((a, b) => a.rpn - b.rpn).map((r) => ({
+                  name: r.risk_factor.length > 26 ? r.risk_factor.slice(0, 24) + "…" : r.risk_factor,
+                  rpn: r.rpn,
+                  level: r.risk_level
+                }))}
+                layout="vertical"
+                margin={{ left: 8, right: 24 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#F1D9E6" />
+                <XAxis type="number" tick={{ fontSize: 11 }} />
+                <YAxis type="category" dataKey="name" width={170} tick={{ fontSize: 12 }} />
+                <Tooltip formatter={(v: number) => [v, "RPN"]} />
+                <Bar dataKey="rpn" radius={[0, 4, 4, 0]}>
+                  {rows
+                    .slice()
+                    .sort((a, b) => a.rpn - b.rpn)
+                    .map((r, i) => <Cell key={i} fill={RISK_COLOR[r.risk_level] ?? RISK_COLOR.unknown} />)}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+            <div className="flex gap-4 mt-3 text-[11px] text-ink/55">
+              {Object.entries(RISK_COLOR).filter(([k]) => k !== "unknown").map(([level, color]) => (
+                <span key={level} className="flex items-center gap-1.5 capitalize">
+                  <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: color }} />
+                  {level}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <table className="data-table w-full">
           <thead><tr><th>Risk Factor</th><th>S</th><th>O</th><th>D</th><th>RPN</th><th>Level</th><th>Study Required</th><th className="w-16"></th></tr></thead>
           <tbody>
             {rows.map((r) => (
@@ -138,6 +182,7 @@ export function RiskAssessmentTab({ projectId }: { projectId: string }) {
             ))}
           </tbody>
         </table>
+        </>
       )}
     </div>
   );

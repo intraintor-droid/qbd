@@ -189,7 +189,7 @@ export interface Database {
           qtpp_id: string | null;
           attribute: string;
           target: string | null;
-          importance: string;
+          importance: number;
           reason: string | null;
           evidence_id: string | null;
           ai_suggested: boolean;
@@ -382,6 +382,27 @@ export interface Database {
         };
         Insert: Partial<Database["public"]["Tables"]["app_settings"]["Row"]>;
         Update: Partial<Database["public"]["Tables"]["app_settings"]["Row"]>;
+        Relationships: never[];
+      };
+      doe_designs: {
+        Row: {
+          id: string;
+          project_id: string;
+          design_name: string;
+          design_type: string | null;
+          response_variable: string | null;
+          factors: { name: string; unit?: string }[];
+          runs: { run: number; values: Record<string, string> }[];
+          notes: string | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["doe_designs"]["Row"]> & {
+          project_id: string;
+          design_name: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["doe_designs"]["Row"]>;
         Relationships: never[];
       };
     };

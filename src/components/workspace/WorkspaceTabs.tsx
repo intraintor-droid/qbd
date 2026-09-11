@@ -7,6 +7,7 @@ import { QtppTab } from "./QtppTab";
 import { CqaTab } from "./CqaTab";
 import { CmaTab } from "./CmaTab";
 import { CppTab } from "./CppTab";
+import { DoeTab } from "./DoeTab";
 import { RiskAssessmentTab } from "./RiskAssessmentTab";
 import { ReferencesTab } from "./ReferencesTab";
 
@@ -17,6 +18,7 @@ const TABS = [
   { id: "cqa", label: "CQA" },
   { id: "cma", label: "CMA" },
   { id: "cpp", label: "CPP" },
+  { id: "doe", label: "DOE" },
   { id: "risk", label: "Risk Assessment" },
   { id: "references", label: "References" }
 ] as const;
@@ -49,6 +51,7 @@ export function WorkspaceTabs({ projectId }: { projectId: string }) {
         {active === "cqa" && <CqaTab projectId={projectId} />}
         {active === "cma" && <CmaTab projectId={projectId} />}
         {active === "cpp" && <CppTab projectId={projectId} />}
+        {active === "doe" && <DoeTab projectId={projectId} />}
         {active === "risk" && <RiskAssessmentTab projectId={projectId} />}
         {active === "references" && <ReferencesTab projectId={projectId} />}
       </div>
