@@ -12,12 +12,24 @@ diimplementasikan.
 ## 1. Setup Supabase
 
 1. Buat project baru di [supabase.com](https://supabase.com).
-2. Buka **SQL Editor**, jalankan isi `supabase/schema.sql` (skema tabel).
-3. Jalankan isi `supabase/rls.sql` (Row Level Security + trigger auto-create profile).
-4. Di **Project Settings → API**, salin:
+2. Buka **SQL Editor**, jalankan `supabase/schema.sql` terlebih dahulu.
+3. Jalankan `supabase/rls.sql` setelah schema utama selesai.
+4. Jalankan migration tambahan **berurutan**:
+   - `supabase/migrations_002_app_settings.sql`
+   - `supabase/migrations_003_element_target_justifikasi.sql`
+   - `supabase/migrations_004_importance_pct_and_doe.sql`
+
+   Urutan ini penting karena file TypeScript aplikasi sudah mengikuti skema hasil migration,
+   termasuk `app_settings`, `doe_designs`, kolom `target`, dan `cqa.importance` berbentuk
+   angka 0–100.
+5. Di **Project Settings → API**, salin:
    - `Project URL` → `NEXT_PUBLIC_SUPABASE_URL`
    - `anon public` key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `service_role` key → `SUPABASE_SERVICE_ROLE_KEY` (jaga kerahasiaannya, jangan pernah expose ke client)
+
+> **Catatan database:** `schema.sql` adalah baseline/historical schema. Jangan menggabungkan isi
+> migration ke schema lama secara manual; jalankan migration sesuai urutan di atas agar database
+> baru dan database existing berakhir pada struktur yang sama.
 
 ## 2. Environment variables
 
@@ -51,8 +63,11 @@ default: `researcher`).
 ## Struktur proyek
 
 ```
-supabase/schema.sql       -> Skema database lengkap (17 tabel, sesuai spesifikasi)
+supabase/schema.sql       -> Baseline skema database
 supabase/rls.sql          -> Row Level Security per role (researcher/reviewer/super_admin)
+supabase/migrations_002*  -> app_settings / branding admin
+supabase/migrations_003*  -> target + justifikasi pada CQA/CMA/CPP
+supabase/migrations_004*  -> CQA importance 0–100 + DOE
 src/lib/supabase/         -> Client & server Supabase clients
 src/lib/ai/provider.ts    -> AIProvider abstraction (Anthropic/OpenAI/Gemini) + anti-hallucination prompt
 src/lib/pubchem/          -> Integrasi PubChem PUG REST (data asli, tidak pernah mengarang)
@@ -65,6 +80,8 @@ src/components/workspace/ -> Tab-tab workspace: API Profile, Literature, QTPP, C
 
 - Setiap panggilan AI diberi context (literatur & evidence tersimpan) dan sistem prompt
   yang melarang AI mengarang jurnal, DOI, atau nilai eksperimen.
+- Response citation dari AI divalidasi kembali terhadap literatur/evidence yang benar-benar
+  diberikan ke model; citation yang tidak cocok dibuang.
 - Jika context tidak cukup, AI wajib menjawab `"Insufficient evidence found."`
 - Data PubChem yang tidak tersedia ditandai `"TIDAK DITEMUKAN"`, bukan diestimasi diam-diam.
 - Referensi tanpa DOI ditandai `"DOI not available"`, tidak pernah dibuat-buat.
