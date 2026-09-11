@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { Sidebar } from "@/components/layout/Sidebar";
+import { LogoutButton } from "@/components/layout/LogoutButton";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = createServerSupabase();
@@ -29,6 +30,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
             <span className="text-[11px] font-mono uppercase tracking-wide bg-primary-soft text-primary px-2 py-0.5 rounded-sm">
               {profile?.role ?? "researcher"}
             </span>
+            <LogoutButton />
           </div>
         </header>
         <main className="p-6 max-w-7xl">{children}</main>
